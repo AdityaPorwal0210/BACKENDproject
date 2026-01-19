@@ -21,12 +21,16 @@ import { User } from '../models/user.model.js'
     if([username,fullName,email,password].some((fields)=>fields?.trim()==="")){
         throw new ApiError(400,"All the fields are required")
     };
-    const existedUser = User.findOne({
+
+    const existedUser = await User.findOne({
         $or:[{username},{email}]
     })
+
     if(existedUser){
         throw new ApiError(409, "User with email or username already exists")
     }
+    console.log("here is req.files")
+    console.log(req.files)
     const avatarLocalFilePath = req.files?.avatar[0]?.path;
     //const coverImageLocalFilePath = req.files?.coverImage[0]?.path;
     if(!avatarLocalFilePath){
@@ -37,9 +41,15 @@ import { User } from '../models/user.model.js'
         coverImageLocalPath = req.files.coverImage[0].path
     }
 
-    const avatar = uploadOnCloud(avatarLocalFilePath)   
-    const coverImage = uploadOnCloud(coverImageLocalPath)
-    const user = User({username:username.toLowerCase(),
+
+    const avatar     = await uploadOnCloud(avatarLocalFilePath) 
+    const coverImage = await uploadOnCloud(coverImageLocalPath)
+    console.log("here is avatar")
+    if (!avatar) {
+        throw new ApiError(400, "Avatar file is required")
+    }  
+
+    const user =await User.create({username:username.toLowerCase(),
         fullName,email,password,avatar:avatar.url,
         coverImage: coverImage?.url || "",})
 
