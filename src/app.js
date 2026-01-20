@@ -17,4 +17,3 @@ import router from "./routes/user.routes.js"
 app.use('/api/v1/users',router)
 
 export {app}
-
